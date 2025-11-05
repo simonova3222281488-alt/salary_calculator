@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Калькулятор зарплаты — Лига Роботов</title>
+  <style>
+    :root{
+      --bg:#0f172a;
+      --card:#111827;
+      --muted:#94a3b8;
+      --text:#e5e7eb;
+      --accent:#22d3ee;
+      --accent-2:#a78bfa;
+      --ring: 0 0 0 3px rgba(34,211,238,.35);
+    }
+    * { box-sizing: border-box }
+    html, body {
+      height:100%;
+      margin:0;
+      padding:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      background: radial-gradient(1200px 800px at 10% 0%, rgba(167,139,250,.15), transparent 60%),
+                  radial-gradient(1000px 700px at 90% 10%, rgba(34,211,238,.10), transparent 60%),
+                  var(--bg);
+      color:var(--text);
+      background-attachment: fixed;
+    }
+    .wrap{
+      max-width:1100px;
+      margin:0 auto;
+      padding:40px 16px 100px;
+      min-height:100vh;
+      display:flex;
+      flex-direction:column;
+    }
+    header{ display:flex; gap:18px; align-items:center; margin-bottom:22px }
+    h1{ font-size: clamp(22px, 3vw, 30px); margin:0 }
+    .badge{ font-size:12px; color:#0f172a; background:linear-gradient(90deg, var(--accent), var(--accent-2)); padding:6px 10px; border-radius:999px; font-weight:700 }
+    .grid{ display:grid; grid-template-columns: repeat(12, 1fr); gap:16px; flex:1 }
+    .card{ grid-column: span 12; background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02)); border:1px solid rgba(255,255,255,.07); border-radius:18px; padding:18px }
+    @media (min-width: 920px){ .card.span-7{ grid-column: span 7 } .card.span-5{ grid-column: span 5 } }
+    .muted{ color:var(--muted) }
+    .row{ display:grid; grid-template-columns: 1fr auto; align-items:center; gap:10px; padding:8px 0; border-bottom:1px dashed rgba(255,255,255,.08) }
+    .row:last-child{ border-bottom:none }
+    .input input{ width:130px; padding:10px 12px; border-radius:12px; border:1px solid rgba(255,255,255,.12); background:#0b1023; color:var(--text); }
+    .input input:focus{ outline:none; box-shadow: var(--ring); border-color:transparent }
+    .total{ font-size: clamp(24px, 4vw, 42px); font-weight:800 }
+    .sub{ font-size: clamp(14px, 2vw, 16px); margin-top:6px }
+    .kpi{ display:flex; flex-wrap:wrap; gap:10px; margin-top:10px }
+    .kpi .chip{ background:#0b1023; border:1px solid rgba(255,255,255,.10); padding:10px 12px; border-radius:12px; min-width:150px }
+    .btns{ display:flex; gap:10px; margin-top:16px }
+    .btn{ cursor:pointer; border:none; border-radius:12px; padding:12px 14px; font-weight:700; color:#0f172a; background:linear-gradient(90deg, var(--accent), var(--accent-2)); }
+    .btn.secondary{ background:#0b1023; color:var(--text); border:1px solid rgba(255,255,255,.12) }
+    .right{ text-align:right }
+    .mono{ font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="badge">Лига Роботов</div>
+      <h1>Калькулятор заработной платы менеджера</h1>
+    </header>
+
+    <div class="grid">
+      <section class="card span-7">
+        <h2>Ввод показателей</h2>
+        <div class="row">
+          <div>
+            <strong>Оклад</strong> <span class="muted">(1 500 ₽ за смену × 20 смен = 30 000 ₽)</span>
+          </div>
+          <div class="input"><input type="number" id="baseSalary" value="30000" /></div>
+        </div>
+        <div class="row">
+          <div><strong>Доведение до пробного</strong> <span class="muted">× 300 ₽</span></div>
+          <div class="input"><input type="number" id="toTrial" value="32" /></div>
+        </div>
+        <div class="row">
+          <div><strong>Месячный абонемент</strong> <span class="muted">× 600 ₽</span></div>
+          <div class="input"><input type="number" id="mMonth" value="33" /></div>
+        </div>
+        <div class="row">
+          <div><strong>Полугодовой абонемент</strong> <span class="muted">× 1 200 ₽</span></div>
+          <div class="input"><input type="number" id="mHalf" value="8" /></div>
+        </div>
+        <div class="row">
+          <div><strong>Годовой абонемент</strong> <span class="muted">× 2 000 ₽</span></div>
+          <div class="input"><input type="number" id="mYear" value="5" /></div>
+        </div>
+        <div class="btns">
+          <button class="btn" id="reset80">Сбросить на план 80 000 ₽</button>
+          <button class="btn secondary" id="clearAll">Обнулить</button>
+        </div>
+      </section>
+
+      <aside class="card span-5">
+        <h2>Итоги</h2>
+        <div class="total mono" id="total">80 000 ₽</div>
+        <div class="sub muted" id="subtitle">План 80 000 ₽ достигнут</div>
+        <div class="kpi">
+          <div class="chip mono">Оклад: <span id="kBase">30 000 ₽</span></div>
+          <div class="chip mono">До пробного: <span id="kTrial">9 600 ₽</span></div>
+          <div class="chip mono">Абонементы: <span id="kSubs">39 400 ₽</span></div>
+          <div class="chip mono">Бонус 45+: <span id="kBonus">1 000 ₽</span></div>
+          <div class="chip mono">Продажи, шт: <span id="kCount">46</span></div>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <script>
+    const fmt = (n)=> n.toLocaleString('ru-RU') + ' ₽';
+    const els = {
+      baseSalary: document.getElementById('baseSalary'),
+      toTrial: document.getElementById('toTrial'),
+      mMonth: document.getElementById('mMonth'),
+      mHalf: document.getElementById('mHalf'),
+      mYear: document.getElementById('mYear'),
+      total: document.getElementById('total'),
+      subtitle: document.getElementById('subtitle'),
+      kBase: document.getElementById('kBase'),
+      kTrial: document.getElementById('kTrial'),
+      kSubs: document.getElementById('kSubs'),
+      kBonus: document.getElementById('kBonus'),
+      kCount: document.getElementById('kCount'),
+      varNoBonus: document.getElementById('varNoBonus'),
+      varBonus: document.getElementById('varBonus'),
+      varTotal: document.getElementById('varTotal'),
+      grandTotal: document.getElementById('grandTotal'),
+      reset80: document.getElementById('reset80'),
+      clearAll: document.getElementById('clearAll')
+    };
+
+    const defaultsFor80k = () => {
+      els.baseSalary.value = 30000;
+      els.toTrial.value = 32;
+      els.mMonth.value = 33;
+      els.mHalf.value = 8;
+      els.mYear.value = 5;
+      recalc();
+    };
+
+    function recalc(){
+      const base = Number(els.baseSalary.value);
+      const t = Number(els.toTrial.value);
+      const m = Number(els.mMonth.value);
+      const h = Number(els.mHalf.value);
+      const y = Number(els.mYear.value);
+      const rT = 300, rM = 600, rH = 1200, rY = 2000, thr = 45, bPer = 1000;
+
+      const salesCount = m + h + y;
+      const varNoBonus = t*rT + m*rM + h*rH + y*rY;
+      const bonusSales = Math.max(0, salesCount - thr);
+      const bonus = bonusSales * bPer;
+      const variableTotal = varNoBonus + bonus;
+      const total = base + variableTotal;
+
+      els.total.textContent = fmt(total);
+      els.grandTotal.textContent = fmt(total);
+      els.kBase.textContent = fmt(base);
+      els.kTrial.textContent = fmt(t*rT);
+      els.kSubs.textContent = fmt(m*rM + h*rH + y*rY);
+      els.kBonus.textContent = fmt(bonus);
+      els.kCount.textContent = salesCount;
+      els.varNoBonus.textContent = fmt(varNoBonus);
+      els.varBonus.textContent = fmt(bonus);
+      els.varTotal.textContent = fmt(variableTotal);
+
+      const target = 80000;
+      els.subtitle.textContent = total >= target ? `На ${fmt(total - target)} больше плана` : `Не хватает ${fmt(target - total)} до плана`;
+    }
+
+    document.querySelectorAll('input').forEach(i=> i.addEventListener('input', recalc));
+    els.reset80.addEventListener('click', defaultsFor80k);
+    els.clearAll.addEventListener('click', ()=>{
+      els.baseSalary.value = 0; els.toTrial.value = 0; els.mMonth.value = 0; els.mHalf.value = 0; els.mYear.value = 0; recalc();
+    });
+
+    defaultsFor80k();
+  </script>
+</body>
+</html>
