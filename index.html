@@ -68,9 +68,10 @@
         <h2>Ввод показателей</h2>
         <div class="row">
           <div>
-            <strong>Оклад</strong> <span class="muted">(1 500 ₽ за смену × 20 смен = 30 000 ₽)</span>
+            <strong>Оклад (смены)</strong> <span class="muted">ставка 1 500 ₽ / смена</span>
+            <div class="muted" style="font-size:12px">Введите количество отработанных смен за месяц</div>
           </div>
-          <div class="input"><input type="number" id="baseSalary" value="30000" /></div>
+          <div class="input"><input type="number" id="shifts" min="0" step="1" value="20" /></div>
         </div>
         <div class="row">
           <div><strong>Доведение до пробного</strong> <span class="muted">× 300 ₽</span></div>
@@ -81,38 +82,46 @@
           <div class="input"><input type="number" id="mMonth" value="33" /></div>
         </div>
         <div class="row">
-          <div><strong>Полугодовой абонемент</strong> <span class="muted">× 1 200 ₽</span></div>
+          <div><strong>Полугодовой абонемент</strong> <span class="muted">× 1 200 ₽</span></div>
           <div class="input"><input type="number" id="mHalf" value="8" /></div>
         </div>
         <div class="row">
-          <div><strong>Годовой абонемент</strong> <span class="muted">× 2 000 ₽</span></div>
+          <div><strong>Годовой абонемент</strong> <span class="muted">× 2 000 ₽</span></div>
           <div class="input"><input type="number" id="mYear" value="5" /></div>
         </div>
         <div class="btns">
-          <button class="btn" id="reset80">Сбросить на план 80 000 ₽</button>
+          <button class="btn" id="reset80">Сбросить на план 80 000 ₽</button>
           <button class="btn secondary" id="clearAll">Обнулить</button>
         </div>
       </section>
 
       <aside class="card span-5">
         <h2>Итоги</h2>
-        <div class="total mono" id="total">80 000 ₽</div>
-        <div class="sub muted" id="subtitle">План 80 000 ₽ достигнут</div>
+        <div class="total mono" id="total">80 000 ₽</div>
+        <div class="sub muted" id="subtitle">План 80 000 ₽ достигнут</div>
         <div class="kpi">
-          <div class="chip mono">Оклад: <span id="kBase">30 000 ₽</span></div>
-          <div class="chip mono">До пробного: <span id="kTrial">9 600 ₽</span></div>
-          <div class="chip mono">Абонементы: <span id="kSubs">39 400 ₽</span></div>
-          <div class="chip mono">Бонус 45+: <span id="kBonus">1 000 ₽</span></div>
+          <div class="chip mono">Оклад: <span id="kBase">20 смен × 1 500 ₽ = 30 000 ₽</span></div>
+          <div class="chip mono">До пробного: <span id="kTrial">9 600 ₽</span></div>
+          <div class="chip mono">Абонементы: <span id="kSubs">39 400 ₽</span></div>
+          <div class="chip mono">Бонус 45+: <span id="kBonus">1 000 ₽</span></div>
           <div class="chip mono">Продажи, шт: <span id="kCount">46</span></div>
         </div>
       </aside>
+
+      <section class="card span-12">
+        <h2>Разбивка по формулам</h2>
+        <div class="row"><div class="muted">Переменная часть (без бонуса):</div><div class="right mono" id="varNoBonus">49 000 ₽</div></div>
+        <div class="row"><div class="muted">Бонус за продажи сверх порога:</div><div class="right mono" id="varBonus">1 000 ₽</div></div>
+        <div class="row"><div class="muted">Переменная часть (итого):</div><div class="right mono" id="varTotal">50 000 ₽</div></div>
+        <div class="row"><div class="muted">Итоговая ЗП:</div><div class="right mono" id="grandTotal">80 000 ₽</div></div>
+      </section>
     </div>
   </div>
 
   <script>
     const fmt = (n)=> n.toLocaleString('ru-RU') + ' ₽';
     const els = {
-      baseSalary: document.getElementById('baseSalary'),
+      shifts: document.getElementById('shifts'),
       toTrial: document.getElementById('toTrial'),
       mMonth: document.getElementById('mMonth'),
       mHalf: document.getElementById('mHalf'),
@@ -133,16 +142,18 @@
     };
 
     const defaultsFor80k = () => {
-      els.baseSalary.value = 30000;
-      els.toTrial.value = 32;
-      els.mMonth.value = 33;
-      els.mHalf.value = 8;
-      els.mYear.value = 5;
+      els.shifts.value = 20;          // 20 смен × 1 500 = 30 000
+      els.toTrial.value = 32;         // 32 × 300 = 9 600
+      els.mMonth.value = 33;          // 33 × 600 = 19 800
+      els.mHalf.value = 8;            // 8 × 1 200 = 9 600
+      els.mYear.value = 5;            // 5 × 2 000 = 10 000
       recalc();
     };
 
     function recalc(){
-      const base = Number(els.baseSalary.value);
+      const shiftRate = 1500;
+      const shifts = Number(els.shifts.value);
+      const base = shifts * shiftRate;
       const t = Number(els.toTrial.value);
       const m = Number(els.mMonth.value);
       const h = Number(els.mHalf.value);
@@ -158,7 +169,7 @@
 
       els.total.textContent = fmt(total);
       els.grandTotal.textContent = fmt(total);
-      els.kBase.textContent = fmt(base);
+      els.kBase.textContent = `${shifts} смен × ${fmt(shiftRate)} = ${fmt(base)}`;
       els.kTrial.textContent = fmt(t*rT);
       els.kSubs.textContent = fmt(m*rM + h*rH + y*rY);
       els.kBonus.textContent = fmt(bonus);
@@ -168,13 +179,13 @@
       els.varTotal.textContent = fmt(variableTotal);
 
       const target = 80000;
-      els.subtitle.textContent = total >= target ? `На ${fmt(total - target)} больше плана` : `Не хватает ${fmt(target - total)} до плана`;
+      els.subtitle.textContent = total === target ? 'План 80 000 ₽ достигнут' : (total > target ? `На ${fmt(total - target)} больше плана` : `Не хватает ${fmt(target - total)} до плана`);
     }
 
     document.querySelectorAll('input').forEach(i=> i.addEventListener('input', recalc));
     els.reset80.addEventListener('click', defaultsFor80k);
     els.clearAll.addEventListener('click', ()=>{
-      els.baseSalary.value = 0; els.toTrial.value = 0; els.mMonth.value = 0; els.mHalf.value = 0; els.mYear.value = 0; recalc();
+      els.shifts.value = 0; els.toTrial.value = 0; els.mMonth.value = 0; els.mHalf.value = 0; els.mYear.value = 0; recalc();
     });
 
     defaultsFor80k();
